@@ -14,6 +14,7 @@ import {
   EmptyState,
   Heading,
   host,
+  Image,
   Input,
   KeyValue,
   on,
@@ -27,7 +28,6 @@ import {
   shell,
   Skeleton,
   Stack,
-  Switch,
   Tab,
   Tabs,
   Text,
@@ -75,7 +75,6 @@ const scanError = atom<string | null>(null)
 /** The agent the person last picked with the switch in this workspace ('' when none): persisted per workspace. */
 const agentPick = atom('agentPick', '', { persist: 'workspace' })
 const target = atom<WriteTarget>('target', 'shared', { persist: 'plugin' })
-const showPluginSkills = atom('showPluginSkills', false, { persist: 'plugin' })
 
 // ------------------------------------------------------------------ actions
 
@@ -260,6 +259,17 @@ function weightLabel(item: Item): string {
   return t(s.tokensIfOn, { tokens: formatTokens(item.tokensIfOn) })
 }
 
+/** A plugin's weight; when it has its own tokens and skills with tokens, the split between them. */
+function pluginWeightLabel(item: Item, skills: Item[]): string {
+  const z = skills.reduce((sum, k) => sum + k.tokensIfOn, 0)
+  const y = Math.max(0, item.tokensIfOn - z)
+  if (y === 0 || z === 0) return weightLabel(item)
+  const live = item.state === 'on' || item.state === 'on-demand'
+  const one = skills.length === 1
+  const text = live ? (one ? s.tokensSplitOne : s.tokensSplit) : one ? s.tokensSplitIfOnOne : s.tokensSplitIfOn
+  return t(text, { total: formatTokens(item.tokensIfOn), own: formatTokens(y), skills: formatTokens(z), count: skills.length })
+}
+
 /** Off and not-installed rows draw their name in grey, next to the state badge. */
 function isOff(item: Item): boolean {
   return item.state === 'off' || item.state === 'not-installed'
@@ -275,7 +285,7 @@ function tabOf(item: Item): Tab {
 /** What a tab's checkboxes and bulk button do: On switches off, Off switches on. */
 const TAB_OP: Record<Tab, 'block' | 'enable'> = { on: 'block', off: 'enable' }
 
-function ItemRow({ item, tgt, tab, picked, onPick }: { item: Item; tgt: WriteTarget; tab: Tab; picked: boolean; onPick: (on: boolean) => void }) {
+function ItemRow({ item, tgt, tab, skills, picked, onPick }: { item: Item; tgt: WriteTarget; tab: Tab; skills: Item[]; picked: boolean; onPick: (on: boolean) => void }) {
   const actions = item.actions[tgt]
   const bulk = actions[TAB_OP[tab]]
   const extra: string[] = []
@@ -299,7 +309,7 @@ function ItemRow({ item, tgt, tab, picked, onPick }: { item: Item; tgt: WriteTar
         {[
           ...(item.kind === 'plugin' ? [] : [t(s.originLine, { origin: originLabel(item) })]),
           t(s.decidedBy, { level: s.level[item.decidedBy.level] }),
-          weightLabel(item),
+          item.kind === 'plugin' ? pluginWeightLabel(item, skills) : weightLabel(item),
           ...extra
         ].join(' · ')}
       </Text>
@@ -313,6 +323,22 @@ function ItemRow({ item, tgt, tab, picked, onPick }: { item: Item; tgt: WriteTar
           {noteText(n)}
         </Text>
       ))}
+      {skills.length > 0 ? (
+        <Collapsible title={t(s.pluginSkillsTitle, { count: skills.length })}>
+          <Stack gap="xs">
+            {[...skills]
+              .sort((a, b) => b.tokensIfOn - a.tokensIfOn || a.name.localeCompare(b.name))
+              .map((k) => (
+                <Row key={k.id} justify="between" gap="sm">
+                  <Text size="xs">{k.name}</Text>
+                  <Text size="xs" muted>
+                    {k.tokensIfOn > 0 ? t(s.tokensLine, { tokens: formatTokens(k.tokensIfOn) }) : s.skillOnDemand}
+                  </Text>
+                </Row>
+              ))}
+          </Stack>
+        </Collapsible>
+      ) : null}
       <Row gap="xs" wrap>
         {OPS.map((op) => {
           const a = actions[op]
@@ -346,16 +372,16 @@ function folderRank(item: Item): number {
 }
 
 function visibleItems(scan: ScanResult, kind: ItemKind): Item[] {
-  const pluginSkills = read(showPluginSkills)
   return scan.items
     .filter((i) => i.kind === kind)
-    .filter((i) => kind !== 'skill' || !i.parent || pluginSkills)
+    // Plugin skills live inside their plugin's row, not in the Skills group.
+    .filter((i) => kind !== 'skill' || !i.parent)
     // What this folder decides comes first, then the heaviest.
     .sort((a, b) => folderRank(a) - folderRank(b) || b.tokensIfOn - a.tokensIfOn || a.name.localeCompare(b.name))
 }
 
 /** One tab of a group: the select-all toolbar with the bulk action, then the rows. */
-function TabBody({ kind, tab, items, tgt }: { kind: ItemKind; tab: Tab; items: Item[]; tgt: WriteTarget }) {
+function TabBody({ kind, tab, items, tgt, skillsOf }: { kind: ItemKind; tab: Tab; items: Item[]; tgt: WriteTarget; skillsOf: (id: string) => Item[] }) {
   const key = `${kind}/${tab}`
   const op = TAB_OP[tab]
   const ticked = read(selected)[key] ?? []
@@ -409,6 +435,7 @@ function TabBody({ kind, tab, items, tgt }: { kind: ItemKind; tab: Tab; items: I
           item={item}
           tgt={tgt}
           tab={tab}
+          skills={item.kind === 'plugin' ? skillsOf(item.id) : []}
           picked={ticked.includes(item.id)}
           onPick={(on) => pick(on ? [...ticked.filter((id) => id !== item.id), item.id] : ticked.filter((id) => id !== item.id))}
         />
@@ -418,16 +445,14 @@ function TabBody({ kind, tab, items, tgt }: { kind: ItemKind; tab: Tab; items: I
 }
 
 function Group({ scan, kind }: { scan: ScanResult; kind: ItemKind }) {
-  // "Attivi: x/y" counts every item of the kind for this agent, plugin skills included even when
-  // the "show plugin skills" filter hides them from the tabs: the header is the full picture.
-  const all = scan.items.filter((i) => i.kind === kind)
   const shown = visibleItems(scan, kind)
   const on = shown.filter((i) => tabOf(i) === 'on')
   const off = shown.filter((i) => tabOf(i) === 'off')
+  const skillsOf = (id: string) => scan.items.filter((i) => i.kind === 'skill' && i.parent === id)
   const title = t(s.groupTitle, {
     kind: s.kind[kind],
-    active: all.filter((i) => tabOf(i) === 'on').length,
-    count: all.length,
+    active: on.length,
+    count: shown.length,
     tokens: formatTokens(scan.totals.byKind[kind])
   })
   const tgt = read(target)
@@ -435,10 +460,10 @@ function Group({ scan, kind }: { scan: ScanResult; kind: ItemKind }) {
     <Collapsible key={kind} title={title} defaultOpen={kind === 'plugin'}>
       <Tabs label={t(s.tabsLabel, { kind: s.kind[kind] })} defaultValue="on">
         <Tab value="on" label={t(s.tabOn, { count: on.length })}>
-          <TabBody kind={kind} tab="on" items={on} tgt={tgt} />
+          <TabBody kind={kind} tab="on" items={on} tgt={tgt} skillsOf={skillsOf} />
         </Tab>
         <Tab value="off" label={t(s.tabOff, { count: off.length })}>
-          <TabBody kind={kind} tab="off" items={off} tgt={tgt} />
+          <TabBody kind={kind} tab="off" items={off} tgt={tgt} skillsOf={skillsOf} />
         </Tab>
       </Tabs>
     </Collapsible>
@@ -526,9 +551,6 @@ function Controls({ scan }: { scan: ScanResult | null }) {
           items={[{ label: scan.profile.agent === 'codex' ? 'CODEX_HOME' : 'CLAUDE_CONFIG_DIR', value: scan.profile.configDir, code: true }]}
         />
       ) : null}
-      <Row gap="md" wrap>
-        <Switch label={s.showPluginSkills} checked={read(showPluginSkills)} onChange={(v) => set(showPluginSkills, v)} />
-      </Row>
       <RadioGroup
         label={s.targetLabel}
         value={codex ? 'shared' : read(target)}
@@ -623,18 +645,42 @@ function FolderSection({ scan, busy }: { scan: ScanResult | null; busy: boolean 
       </Stack>
     )
   }
-  return <EmptyState icon="folder" title={s.noFolderTitle} description={s.noFolderBody} />
+  return null
 }
 
 export default function Panel() {
   setLocale(env.locale)
   const scan = read(result)
   const busy = read(loading)
+  const noAgent = scan && scan.agentsPresent.length === 0 && scan.workspaceHint !== undefined
+  const noFolder = scan && !scan.folder && scan.folderSource === 'none'
   return (
     <Stack gap="md">
-      <Heading>{s.title}</Heading>
-      {scan && scan.agentsPresent.length === 0 && scan.workspaceHint !== undefined ? (
+      <Row gap="sm" align="center" wrap={false}>
+        <Box width={112} shrink={false}>
+          <Image
+            src={env.theme.colorScheme === 'dark' ? 'docs/mascot-dark.png' : 'docs/mascot-light.png'}
+            alt=""
+            size="full"
+            fit="contain"
+          />
+        </Box>
+        <Box grow minWidth={0} gap="xs">
+          <Heading>{s.title}</Heading>
+          {!noAgent && !noFolder && scan ? (
+            <Stack gap="xs">
+              {scan.folder ? <FolderSection scan={scan} busy={false} /> : null}
+              <Text size="xs" muted>
+                {profileLine(scan)}
+              </Text>
+            </Stack>
+          ) : null}
+        </Box>
+      </Row>
+      {noAgent ? (
         <EmptyState icon="agent" title={s.noAgentTitle} description={s.noAgentBody} />
+      ) : noFolder ? (
+        <EmptyState icon="folder" title={s.noFolderTitle} description={s.noFolderBody} />
       ) : (
         <Content scan={scan} busy={busy} />
       )}
@@ -650,15 +696,8 @@ function Content({ scan, busy }: { scan: ScanResult | null; busy: boolean }) {
   const tgt = scan?.agent === 'codex' ? 'shared' : read(target)
   return (
     <Stack gap="md">
-      <FolderSection scan={scan} busy={busy} />
-      <Stack gap="xs">
-        {scan ? <AgentSwitch scan={scan} /> : null}
-        {scan ? (
-          <Text size="xs" muted>
-            {profileLine(scan)}
-          </Text>
-        ) : null}
-      </Stack>
+      {!scan?.folder ? <FolderSection scan={scan} busy={busy} /> : null}
+      {scan && scan.agentsPresent.length > 1 ? <AgentSwitch scan={scan} /> : null}
       {scan && scan.folder ? <Summary scan={scan} /> : null}
       <Collapsible title={t(s.settingsTitle, { target: (scan?.agent === 'codex' ? s.targetCodex : s.target)[tgt] })}>
         <Controls scan={scan} />

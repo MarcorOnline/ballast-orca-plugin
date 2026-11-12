@@ -65,11 +65,22 @@ test('shows the profile, the total and project-enabled plugins', async () => {
   assert.deepEqual(view.refusals, [])
 })
 
-test('the group header counts the active items out of all of them, plugin skills included', async () => {
+test('the group header counts only the items its tabs show: plugin skills are not in the Skills group', async () => {
   view = await mount(panel, { host: host(newCalls()), locale: 'en-US' })
-  assert.ok(seen(view, /Plugins · Active: 2\/3 · ~1.2k tokens/))
-  // The plugin skill is hidden by "show plugin skills" and still counts: Active 1/1.
-  assert.ok(seen(view, /Skills · Active: 1\/1/))
+  assert.ok(seen(view, /Plugins · Active: 2\/3 · ~1\.2k tokens/))
+  assert.ok(seen(view, /Skills · Active: 0\/0/))
+  assert.deepEqual(view.errors, [])
+})
+
+test('a plugin row splits its weight and lists its skills in a collapsible', async () => {
+  view = await mount(panel, { host: host(newCalls()), locale: 'en-US' })
+  // azure@acme weighs 1200 in all, 40 of them from its one skill.
+  assert.ok(view.find({ text: /~1\.2k tokens: ~1\.2k plugin \| ~40 from 1 skill/ }), 'the split line')
+  assert.ok(seen(view, 'Skills in this plugin (1)'))
+  await view.toggle({ label: 'Skills in this plugin (1)' })
+  assert.ok(view.find({ text: 'azure-deploy' }), 'the skill name is listed')
+  assert.ok(view.find({ text: '~40 tokens' }), 'the skill figure is listed')
+  assert.equal(view.find({ label: 'azure-deploy' }), null, 'no checkbox for a plugin skill')
   assert.deepEqual(view.errors, [])
 })
 
@@ -162,19 +173,6 @@ test('per-item failures are listed with their note', async () => {
   assert.deepEqual(view.errors, [])
 })
 
-test('a disabled checkbox carries the reason', async () => {
-  view = await mount(panel, { host: host(newCalls()), locale: 'en-US' })
-  await view.toggle({ label: /^Settings/ })
-  await view.toggle({ label: 'Show plugin skills' })
-  await view.toggle({ label: /^Skills ·/ })
-  const box = view.find({ label: 'azure-deploy' })
-  assert.ok(box, 'the skill row has a checkbox')
-  const props = box.props as { disabled?: boolean; description?: string }
-  assert.equal(props.disabled, true)
-  assert.match(props.description ?? '', /turn off the plugin azure@acme/)
-  assert.deepEqual(view.errors, [])
-})
-
 test('the panel is laid out Folder, agent line, Estimated context, Settings, then the groups', async () => {
   view = await mount(panel, { host: host(newCalls()), locale: 'en-US' })
   const tree = JSON.stringify(view.tree())
@@ -186,19 +184,6 @@ test('the panel is laid out Folder, agent line, Estimated context, Settings, the
   const order = [at('Folder'), at('active account in Orca'), at('Estimated context'), at('Settings'), at('Plugins · Active')]
   assert.deepEqual(order, [...order].sort((x, y) => x - y))
   assert.ok(at('Good to know') > order[4], 'warnings come last')
-  assert.deepEqual(view.errors, [])
-})
-
-test('a plugin skill cannot be blocked on its own', async () => {
-  view = await mount(panel, { host: host(newCalls()), locale: 'en-US' })
-  await view.toggle({ label: /^Settings/ })
-  await view.toggle({ label: 'Show plugin skills' })
-  await view.toggle({ label: /^Skills ·/ })
-  assert.ok(view.find({ label: 'azure-deploy' }))
-  const blocks = view.findAll({ role: 'button', text: 'Turn off here' })
-  const props = blocks[blocks.length - 1].props as { disabled?: boolean; tooltip?: string }
-  assert.equal(props.disabled, true)
-  assert.match(props.tooltip ?? '', /turn off the plugin azure@acme/)
   assert.deepEqual(view.errors, [])
 })
 
@@ -319,9 +304,19 @@ test('an ambiguous workspace shows the notice and only the candidates; picking o
 })
 
 test('with no focused workspace the panel says so and offers nothing to pick', async () => {
-  const none = { ...sampleScan, folder: '', folderSource: 'none' as const, items: [], candidates: [] }
+  const none = {
+    ...sampleScan,
+    folder: '',
+    folderSource: 'none' as const,
+    items: [],
+    candidates: [],
+    profile: { ...sampleScan.profile, exists: false }
+  }
   view = await mount(panel, { host: hostWith(none), locale: 'en-US' })
   assert.ok(view.find({ text: /No active workspace/ }))
+  assert.equal(view.find({ text: /Settings/ }), null)
+  assert.equal(view.find({ text: /default folder|Claude ·/ }), null)
+  assert.equal(view.find({ text: /profile folder does not exist/ }), null)
   assert.equal(view.find({ label: /Oppure scegli/ }), null)
   assert.deepEqual(view.errors, [])
 })
@@ -396,4 +391,19 @@ test('the panel follows Orca’s language: Italian when it is Italian', async ()
   await view.unmount()
   view = await mount(panel, { host: host(newCalls()), locale: 'en-US' })
   assert.ok(seen(view, 'On (2)'))
+})
+
+test('a disabled checkbox carries the reason', async () => {
+  const blocked = { allowed: false, notes: [{ code: 'noEntryInFile' as const }] }
+  const items = sampleScan.items.map((i) =>
+    i.kind === 'memory' ? { ...i, actions: { shared: { ...i.actions.shared, block: blocked }, personal: { ...i.actions.personal, block: blocked } } } : i
+  )
+  view = await mount(panel, { host: hostWith({ ...sampleScan, items }), locale: 'en-US' })
+  await view.toggle({ label: /^Memory/ })
+  const box = view.find({ label: 'CLAUDE.md' })
+  assert.ok(box, 'the memory row has a checkbox')
+  const props = box.props as { disabled?: boolean; description?: string }
+  assert.equal(props.disabled, true)
+  assert.match(props.description ?? '', /no entry for this item/)
+  assert.deepEqual(view.errors, [])
 })

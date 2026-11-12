@@ -108,6 +108,12 @@ export const en = {
   tokensLine: '~{tokens} tokens',
   tokensIfOn: '~{tokens} tokens if on',
   tokensInParent: 'counted in the plugin',
+  tokensSplit: '~{total} tokens: ~{own} plugin | ~{skills} from {count} skills',
+  tokensSplitOne: '~{total} tokens: ~{own} plugin | ~{skills} from 1 skill',
+  tokensSplitIfOn: '~{total} tokens if on: ~{own} plugin | ~{skills} from {count} skills',
+  tokensSplitIfOnOne: '~{total} tokens if on: ~{own} plugin | ~{skills} from 1 skill',
+  pluginSkillsTitle: 'Skills in this plugin ({count})',
+  skillOnDemand: 'on demand',
   tools: '{count} tools',
   newBadge: 'new',
   op: {
@@ -115,7 +121,6 @@ export const en = {
     block: 'Turn off here',
     reset: 'Reset to default'
   } satisfies Record<Op, string>,
-  showPluginSkills: 'Show plugin skills',
   writtenTitle: 'Written to {file}: {count} items',
   writtenTitleOne: 'Written to {file}: 1 item',
   writtenBody: 'Applies from the agent’s next session in this folder.',
@@ -284,6 +289,12 @@ export const it: Strings = {
   tokensLine: '~{tokens} token',
   tokensIfOn: '~{tokens} token se acceso',
   tokensInParent: 'contati nel plugin',
+  tokensSplit: '~{total} token: ~{own} plugin | ~{skills} da {count} skill',
+  tokensSplitOne: '~{total} token: ~{own} plugin | ~{skills} da 1 skill',
+  tokensSplitIfOn: '~{total} token se acceso: ~{own} plugin | ~{skills} da {count} skill',
+  tokensSplitIfOnOne: '~{total} token se acceso: ~{own} plugin | ~{skills} da 1 skill',
+  pluginSkillsTitle: 'Skill del plugin ({count})',
+  skillOnDemand: 'su richiesta',
   tools: '{count} tool',
   newBadge: 'nuovo',
   op: {
@@ -291,7 +302,6 @@ export const it: Strings = {
     block: 'Spegni qui',
     reset: 'Torna al default'
   } satisfies Record<Op, string>,
-  showPluginSkills: 'Mostra le skill dei plugin',
   writtenTitle: 'Scritto in {file}: {count} voci',
   writtenTitleOne: 'Scritto in {file}: 1 voce',
   writtenBody: 'Vale dalla prossima sessione dell’agente in questa cartella.',

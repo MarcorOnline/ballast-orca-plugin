@@ -2,7 +2,7 @@
   "manifestVersion": 2,
   "id": "ballast",
   "name": "Ballast",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Shows what weighs on your coding agent's context in a folder (plugins, skills, MCP servers, claude.ai connectors, memory) and turns each item on or off for that folder only. Supports Claude Code and Codex.",
   "license": "Apache-2.0",
   "repository": "https://github.com/MarcorOnline/ballast-orca-plugin",

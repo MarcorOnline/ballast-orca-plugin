@@ -36,8 +36,9 @@ not read), the panel shows only "No agent in this workspace" and the worker scan
 the status bar item shows its plain text.
 
 Each group header reads "Plugins · Active: 18/20 · ~3.1k tokens". **Active** counts the items that
-are on or on-demand out of **all** the items of that kind for the agent, plugin skills included
-even while the "show plugin skills" switch hides them from the rows. The token figure is the
+are on or on-demand out of the items listed in that group, the same ones the tabs show. The Skills
+group lists only standalone skills; a plugin's skills sit in a collapsible inside the plugin's row,
+and the plugin's weight is split into its own tokens and its skills'. The token figure is the
 group's counted total.
 
 Inside a group, two tabs split the rows: **On (N)** (on and on-demand) and **Off (M)** (off,
@@ -92,7 +93,7 @@ guesses:
    agente lavora in una sua tab", and below it lists **only** the workspaces with that name and
    branch (at most 50). The pick is remembered by the terminal ids and the agents of that focus
    (as extra entries in the maps above), so that workspace stays recognised. There is no field for
-   free paths. With no focused workspace the panel says "No active workspace".
+   free paths. With no focused workspace the panel says "No active workspace" and shows nothing else.
 
 **The limit:** a tab with no terminal and no agent that has ever reported while Ballast was
 running is recognised only by name and branch, or by your pick. A workspace whose name and branch

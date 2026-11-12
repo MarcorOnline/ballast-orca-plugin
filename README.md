@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  Version 0.6.0 · Orca ≥ 1.4.248 · Claude Code and Codex
+  Version 0.7.0 · Orca ≥ 1.4.248 · Claude Code and Codex
 </p>
 
 ---
@@ -27,6 +27,8 @@ turns items on or off **for that folder only**, without touching your global con
   that decides that state.
 - **Token estimates.** An estimated total for the folder, the heaviest items first, and a weight
   per item and per group ("Active: 18/20 · ~3.1k tokens").
+- **Plugin skills together.** Expand a plugin to see its skills and their token weights. The Skills
+  group lists standalone skills, and each group counts the items shown in its tabs.
 - **Per-folder switches.** Enable, block or reset each item, or tick several and act on them at
   once. Changes are written straight away to the folder's own settings file, and **Undo**
   (undo) restores it byte for byte.
