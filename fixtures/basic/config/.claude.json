@@ -1,0 +1,14 @@
+{
+  "oauthAccount": { "emailAddress": "dev@example.com", "accessToken": "SECRET_OAUTH" },
+  "mcpServers": {
+    "user-db": { "command": "node", "args": ["db.js", "--password", "SECRET_ARG"], "env": { "DB_PASS": "SECRET_STATE_ENV" } },
+    "remote-api": { "type": "http", "url": "https://user:SECRET_RULE_PASS@api.example.com/mcp", "headers": { "Authorization": "Bearer SECRET_HEADER" } }
+  },
+  "projects": {
+    "__PROJECT__": {
+      "hasTrustDialogAccepted": true,
+      "mcpServers": { "local-tool": { "command": "tool", "env": { "LOCAL_KEY": "SECRET_LOCAL_ENV" } } },
+      "disabledMcpServers": ["local-tool"]
+    }
+  }
+}

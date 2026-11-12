@@ -1,0 +1,16 @@
+{
+    "permissions": {
+        "additionalDirectories": [
+            "../SECRET_DIR_VALUE"
+        ]
+    },
+    "enabledPlugins": {
+        "azure@acme": true,
+        "cloudflare@acme": true,
+        "docs@acme": true,
+        "ghost@acme": true
+    },
+    "env": {
+        "PROJECT_SECRET": "SECRET_PROJECT_ENV"
+    }
+}

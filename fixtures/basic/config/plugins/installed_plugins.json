@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "plugins": {
+    "azure@acme": [{ "scope": "user", "installPath": "__CONFIG__/plugins/cache/acme/azure/1.0.0" }],
+    "cloudflare@acme": [{ "scope": "user", "installPath": "__CONFIG__/plugins/cache/acme/cloudflare/1.0.0" }],
+    "docs@acme": [{ "scope": "user", "installPath": "__CONFIG__/plugins/cache/acme/docs/1.0.0" }],
+    "helper@acme": [{ "scope": "user", "installPath": "__CONFIG__/plugins/cache/acme/helper/1.0.0" }],
+    "noisy@acme": [{ "scope": "user", "installPath": "__CONFIG__/plugins/cache/acme/noisy/1.0.0" }]
+  }
+}

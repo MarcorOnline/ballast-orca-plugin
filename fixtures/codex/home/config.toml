@@ -1,0 +1,34 @@
+# User config for Codex (fixture)
+model = "gpt-5"
+project_doc_max_bytes = 520
+
+[projects.'__PROJECT__']
+trust_level = "trusted"
+
+[plugins."tools@acme"]
+enabled = true
+
+[plugins."quiet@acme"]
+enabled = false
+
+[plugins."ghost@acme"]
+enabled = true
+
+[mcp_servers.docs]
+url = "https://SECRET_user:SECRET_pass@mcp.example.com/mcp"
+bearer_token_env_var = "SECRET_TOKEN_VAR"
+
+[mcp_servers.docs.http_headers]
+Authorization = "Bearer SECRET_header"
+
+[mcp_servers.db]
+command = "node"
+args = ["db.js", "--token=SECRET_arg"]
+enabled = true
+
+[mcp_servers.db.env]
+DB_PASSWORD = "SECRET_env_value"
+
+[[skills.config]]
+name = "noisy-skill"
+enabled = false

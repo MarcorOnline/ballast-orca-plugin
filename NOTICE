@@ -1,0 +1,6 @@
+Ballast, a plugin for Orca
+Copyright 2026 Marco Rinaldi (https://github.com/MarcorOnline)
+
+Original author: Marco Rinaldi. Redistributions and derivative works must keep this NOTICE, as required by section 4(d) of the Apache License 2.0.
+
+This product includes software developed by others, vendored in src/vendor/ and used under its own license: jsonc-parser (MIT) and smol-toml (BSD-3-Clause).

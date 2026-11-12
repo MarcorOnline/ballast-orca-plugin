@@ -1,0 +1,2 @@
+{"timestamp":"2026-11-01T10:00:00Z","type":"session_meta","payload":{"id":"aaaa","cwd":"__PROJECT__"}}
+{"type":"event_msg","payload":{"type":"task_started"}}

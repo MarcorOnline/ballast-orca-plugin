@@ -1,0 +1,13 @@
+{
+  "name": "ballast-orca-plugin",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Development tooling only: Orca loads the plugin from orca-plugin.json with no build step.",
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.0"
+  }
+}

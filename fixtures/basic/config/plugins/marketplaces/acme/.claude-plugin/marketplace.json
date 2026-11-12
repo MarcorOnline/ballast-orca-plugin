@@ -1,0 +1,15 @@
+{
+  "name": "acme",
+  "plugins": [
+    {
+      "name": "azure",
+      "source": { "source": "git-subdir", "url": "https://example.com/azure.git", "path": "skills" },
+      "skills": ["./azure-deploy"],
+      "mcpServers": { "azure": { "command": "npx", "args": ["azure-mcp"], "env": { "AZURE_SECRET": "SECRET_PLUGIN_ENV" } } }
+    },
+    { "name": "cloudflare", "source": "./cloudflare" },
+    { "name": "docs", "source": "./docs" },
+    { "name": "helper", "source": "./helper" },
+    { "name": "noisy", "source": "./noisy" }
+  ]
+}

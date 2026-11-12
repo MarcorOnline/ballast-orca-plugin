@@ -1,0 +1,20 @@
+{
+  "env": {
+    "API_TOKEN": "SECRET_ENV_USER"
+  },
+  "hooks": {
+    "Stop": [{ "hooks": [{ "type": "command", "command": "notify --token SECRET_HOOK" }] }]
+  },
+  "enabledPlugins": {
+    "azure@acme": false,
+    "cloudflare@acme": false,
+    "docs@acme": false,
+    "helper@acme": true,
+    "noisy@acme": true
+  },
+  "deniedMcpServers": [
+    { "serverName": "claude.ai Atlassian" },
+    { "serverName": "claude.ai Asana" },
+    { "serverUrl": "https://*:SECRET_RULE_PASS@api.example.com/*" }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "mcpServers": {
+    "proj-db": { "command": "node", "args": ["db.js"], "env": { "TOKEN": "SECRET_MCPJSON_ENV" } },
+    "proj-api": { "url": "https://x:SECRET_MCPJSON_URL@h.example.com/mcp" }
+  }
+}

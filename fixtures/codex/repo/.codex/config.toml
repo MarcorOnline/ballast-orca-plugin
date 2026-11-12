@@ -1,0 +1,15 @@
+# Project overrides for Codex.
+# Keep this comment and the order of the tables.
+[mcp_servers.db]   # tightened for this repo
+enabled = false
+
+[mcp_servers.local-tool]
+command = "SECRET_cmd"
+env = { API_KEY = "SECRET_inline_env" }
+
+[plugins."tools@acme"]
+enabled = false  # off here
+
+[[skills.config]]
+name = "repo-skill"
+enabled = false
