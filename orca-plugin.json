@@ -10,6 +10,11 @@
     "name": "Marco Rinaldi",
     "url": "https://github.com/MarcorOnline"
   },
+  "icon": "docs/icon.png",
+  "cover": {
+    "path": "docs/cover.png",
+    "alt": "Ballast: a small robot bent under a heavy backpack full of coins"
+  },
   "engines": {
     "orca": ">=1.4.248"
   },
